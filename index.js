@@ -16,13 +16,11 @@ const smallCanvas = document.querySelector("#smallCanvas");
 smallCanvas.width = 320;
 smallCanvas.height = 240;
 const smallCtx = smallCanvas.getContext("2d", { willReadFrequently: true });
-smallCtx.willReadFrequently = true;
 
-const scaleX = canvas.width / smallCanvas.width;
+let preFrameData = null;
 
 connectWebcam(webcamVideo, webcamSize.w, webcamSize.h);
 loop();
-
 
 // Loop
 function loop() {
@@ -46,6 +44,12 @@ function loop() {
     smallCanvas.width,
     smallCanvas.height
   );
+  const imgDataCopy = smallCtx.getImageData(
+    0,
+    0,
+    smallCanvas.width,
+    smallCanvas.height
+  );
   const data = imgData.data;
 
   // for every row
@@ -60,9 +64,21 @@ function loop() {
       const g = data[i + 1];
       const b = data[i + 2];
 
-      const testColour = { r, g, b };
+        if(preFrameData){
+            const prevR = preFrameData[i];
+            const prevG = preFrameData[i + 1];
+            const prevB = preFrameData[i + 2];
+            
+            imgData.data[i] = prevR - r;
+            imgData.data[i +1] = prevG - g;
+            imgData.data[i+2] = prevB - b;
+        }
     }
   }
+
+  preFrameData = imgDataCopy.data;
+  smallCtx.putImageData(imgData, 0, 0)
+
 
   window.requestAnimationFrame(loop);
 }
