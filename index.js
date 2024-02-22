@@ -9,8 +9,8 @@ const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const webcamSize = { w: 320, h: 240 };
 
 // Setup
-canvas.width = 800;
-canvas.height = 600;
+canvas.width = 640;
+canvas.height = 480;
 
 const smallCanvas = document.querySelector("#smallCanvas");
 smallCanvas.width = 320;
@@ -26,18 +26,6 @@ loop();
 function loop() {
   drawVideoToCanvas(webcamVideo, smallCanvas);
 
-  ctx.drawImage(
-    smallCanvas,
-    0,
-    0,
-    smallCanvas.width,
-    smallCanvas.height,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
   const imgData = smallCtx.getImageData(
     0,
     0,
@@ -51,6 +39,7 @@ function loop() {
     smallCanvas.height
   );
   const data = imgData.data;
+  const threshold = 25;
 
   // for every row
   for (let y = 0; y < smallCanvas.height; y++) {
@@ -68,17 +57,34 @@ function loop() {
             const prevR = preFrameData[i];
             const prevG = preFrameData[i + 1];
             const prevB = preFrameData[i + 2];
+
+            const diff = (r+g+b) - (prevR+prevG+prevB);
+            const val = diff > threshold ? 255 : 0;
+            imgData.data[i] = val;
+            imgData.data[i +1] = val;
+            imgData.data[i+2] = val;
             
-            imgData.data[i] = prevR - r;
-            imgData.data[i +1] = prevG - g;
-            imgData.data[i+2] = prevB - b;
+            // imgData.data[i] = prevR - r;
+            // imgData.data[i +1] = prevG - g;
+            // imgData.data[i+2] = prevB - b;
         }
     }
   }
 
   preFrameData = imgDataCopy.data;
-  smallCtx.putImageData(imgData, 0, 0)
+  smallCtx.putImageData(imgData, 0, 0);
 
+    ctx.drawImage(
+    smallCanvas,
+    0,
+    0,
+    smallCanvas.width,
+    smallCanvas.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
   window.requestAnimationFrame(loop);
 }
