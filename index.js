@@ -7,18 +7,18 @@ const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
 // Settings
-const webcamSize = { w: 320, h: 240 };
+const webcamSize = { w: 1280, h: 720 };
 const controls = document.querySelector("#controls");
 const params = initControls(controls);
 
 // Setup
-canvas.width = 640;
-canvas.height = 480;
+canvas.width = 1280;
+canvas.height = 720;
 
 const smallCanvas = document.querySelector("#smallCanvas");
 const staticCanvas = document.querySelector("#staticCanvas");
-smallCanvas.width = staticCanvas.width = 320;
-smallCanvas.height = staticCanvas.height = 240;
+smallCanvas.width = staticCanvas.width = 1280;
+smallCanvas.height = staticCanvas.height = 720;
 
 const smallCtx = smallCanvas.getContext("2d", { willReadFrequently: true });
 const staticCtx = staticCanvas.getContext("2d", { willReadFrequently: true });
@@ -54,11 +54,7 @@ function loop() {
 //   const data = imgData.data;
 
   // for every row
-  for (let y = 0; y < smallCanvas.height; y++) {
-    // for every pixel in the row
-    for (let x = 0; x < smallCanvas.width; x++) {
-      // Calculate the index of the current pixel in the image data array
-      const i = (y * smallCanvas.width + x) * 4;
+  for (let i = 0; i < imgDataCopy.data.length; i+=4) {
 
       // Access the RGBA values of the pixel
       const r = imgData.data[i];
@@ -74,24 +70,38 @@ function loop() {
             
             const changeMeetsThreshold = diff > params.threshold;
             const val = changeMeetsThreshold ? 255 : 0;
-            imgData.data[i] = val;
-            imgData.data[i +1] = val;
-            imgData.data[i+2] = val;
+            // imgData.data[i] = val;
+            // imgData.data[i +1] = val;
+            // imgData.data[i+2] = val;
+
+            // only show the values that haven't changed
+            if(changeMeetsThreshold){
+                tvImgData.data[i] = r - prevR;
+                tvImgData.data[i+1] = g - prevG;
+                tvImgData.data[i+2] = b - prevB;
+            }
+            else{
+              tvImgData.data[i] = 255;
+                tvImgData.data[i+1] = 255;
+                tvImgData.data[i+2] = 255;
+            }
+
 
             // adjust the same pixel within the static if meets the threshold
-            if(changeMeetsThreshold){
-                const isWhite = tvImgData.data[i];
-                const flipValue = isWhite ? 0 : 255;
-                tvImgData.data[i] = flipValue;
-                tvImgData.data[i+1] = 255;
-                tvImgData.data[i+2] = flipValue;
-            }
-            
-            // imgData.data[i] = prevR - r;
-            // imgData.data[i +1] = prevG - g;
-            // imgData.data[i+2] = prevB - b;
+            // if(changeMeetsThreshold){
+            //     const isWhite = tvImgData.data[i] === 255;
+            //     const flipValue = isWhite ? 0 : 255;
+            //     tvImgData.data[i] = flipValue;
+            //     tvImgData.data[i+1] = flipValue;
+            //     tvImgData.data[i+2] = flipValue;
+            // }
+
+            // if(changeMeetsThreshold && i+7 < imgDataCopy.data.length){
+            //   tvImgData.data[i + 5] = 255;
+            //   tvImgData.data[i + 6] = val;
+            //   tvImgData.data[i + 7] = 255;
+            // }
         }
-    }
   }
 
   preFrameData = imgDataCopy.data;
